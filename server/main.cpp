@@ -1,13 +1,23 @@
 #include "server.h"
+#include <sys/wait.h>
 
 int main(int argc, char *argv[])
 {
-  parse_json();
-  connectChannels(argv);
+  Server server;
+  std::cout<<get_working_path()<<std::endl;
+  char ** ports = new char*[2];
+  ports[0] = str_to_charstar(getCommandPort());
+  ports[1] = str_to_charstar(getDataPort());
+  server.connectChannels(ports);
   while(1)
   {
-    handleSelect();
-    handleIncomingConnections();
-    handleIncomingInformation();
+    socketData sock = server.handleIncomingConnections();
+    int fork_c = fork();
+    if(fork_c == 0){
+      server.handleIncomingInformation(static_cast<void*> (&sock));
+      break;
+    }
   }
+  wait(NULL);
+  
 }

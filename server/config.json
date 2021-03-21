@@ -1,22 +1,21 @@
 {
-
-  "files": [
-    "config.json",
-    "amir.txt",
-    "aliz.txt"
+  "commandChannelPort": 8000,
+  "dataChannelPort":8001,
+  "users": [
+    {
+		"user": "Ali",
+		"password": "1234",
+		"admin": "true",
+		"size": "1000000"
+    },
+    {
+		"user": "Mohsen",
+		"password": "1234",
+		"admin": "false",
+		"size": "1000000"
+    }
   ],
-    "users": [
-      {
-          "admin": "true",
-          "password": "1234",
-          "user": "Ali",
-          "size": "1000000"
-      },
-      {
-          "user": "Mohsen",
-          "size": "1000000",
-          "password": "1234",
-          "admin": "false"
-      }
+    "files": [
+      "config.json"
     ]
-  }
+}

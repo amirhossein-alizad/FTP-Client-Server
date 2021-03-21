@@ -14,6 +14,7 @@
 #include <string>
 #include <fcntl.h>
 #include <iostream>
+#include "../Json/json.h"
 
 #define REQUEST_ADDR "127.0.0.1"
 #define DATA_ADDR "127.0.0.2"

@@ -21,7 +21,7 @@ void connectChannels(char* argv[]){
         exit(EXIT_FAILURE);
     }
     addressOfSocket.sin_family = AF_INET;
-    addressOfSocket.sin_port = htons(atoi(argv[1]));
+    addressOfSocket.sin_port = htons(atoi(argv[0]));
     addressOfSocket.sin_addr.s_addr = inet_addr(REQUEST_ADDR);
     dataSocketAddr.sin_family = AF_INET;
     dataSocketAddr.sin_port = htons(atoi(argv[1]));
@@ -31,9 +31,6 @@ void connectChannels(char* argv[]){
       std::cout<<"failed to connect"<<std::endl;
       exit(EXIT_FAILURE);
     }
-}
-
-void informationHandle(){
     int port;
     char *in = new char[250];
     recv(broadcastFD, in, 250, 0);
@@ -41,10 +38,35 @@ void informationHandle(){
     delete in;
     in = new char[250];
     recv(dataFD, in, 250, 0);
-    char input[256];
     std::cout<<in<<std::endl;
-    std::cin.getline(input,sizeof(input));
     delete in;
-    send(broadcastFD, input, sizeof(input), 0);
-    close(broadcastFD);
+}
+
+void informationHandle(){
+    char in[256];
+    std::cin.getline(in, 256);
+    if(send(broadcastFD, in, sizeof(in), 0)<0)
+        exit(EXIT_FAILURE);
+    if(strcmp(in, "exit") == 0)
+        exit(EXIT_SUCCESS);
+    if(strcmp(in, "help") == 0){
+        char* msg = new char[256]; 
+        recv(broadcastFD, msg, 256, 0);
+        std::cout<<msg<<std::endl;
+        if(strcmp(msg, "214") != 0)
+            return;
+        delete msg;
+        while(1){
+            char* newmsg = new char[512];
+            recv(broadcastFD, newmsg, 512, 0);
+            std::cout<<strlen(newmsg)<<std::endl;
+            if(strcmp(newmsg, "DONE\n") == 0)
+                return;
+            std::cout<<newmsg<<std::endl;
+            delete newmsg;
+        } 
+    }
+    char* msg = new char[256]; 
+    recv(broadcastFD, msg, 256, 0);
+    std::cout<<msg<<std::endl;
 }

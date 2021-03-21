@@ -59,6 +59,7 @@ public:
   void handle_help(std::vector<std::string>, int, bool, bool);
   void handle_cwd(std::vector<std::string>, int, bool, bool, std::string*);
   void handle_pwd(std::vector<std::string>, std::string, int, bool, bool, std::string);
+  void handle_mkd(std::vector<std::string>, int, bool, bool, std::string);
   static std::vector<std::string> parse_command(char command[]){
       std::vector<std::string> parsed;
       std::string str;
@@ -84,5 +85,5 @@ std::vector<std::string> parse_msg(char* msg);
 std::vector<std::string> ls(std::string);
 std::string get_working_path();
 std::string rmv_cwd(std::string path);
-bool doeDirExist(std::string dir);
+bool doesDirExist(std::string dir);
 std::string move_back(std::string path);

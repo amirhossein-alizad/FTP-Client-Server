@@ -1,5 +1,4 @@
 #include "server.h"
-#include <filesystem>
 
 void Server::parse_json(){
   jsonParser();
@@ -115,64 +114,6 @@ void Server::connectChannels(char* ports[]){
     }
 }
 
-char * str_to_charstar(std::string s){
-  char * p = new char[s.length() + 1];
-  int i;
-  for (i = 0; i < s.length(); i++)
-      p[i] = s[i];
-  p[s.length()] ='\0';
-  return p;
-}
-
-static char *itoa_simple_helper(char *dest, int i) {
-  if (i <= -10) {
-    dest = itoa_simple_helper(dest, i/10);
-  }
-  *dest++ = '0' - i%10;
-  return dest;
-}
-
-char *itoa_simple(char *dest, int i) {
-  char *s = dest;
-  if (i < 0) {
-    *s++ = '-';
-  } else {
-    i = -i;
-  }
-  *itoa_simple_helper(s, i) = '\0';
-  return dest;
-}
-
-bool file_exists(const char* filename){
-    std::ifstream infile(filename);
-    return infile.good();
-}
-
-void Server::read_help(){
-  std::ifstream fin;
-  fin.open("help.txt");
-  std::string str;
-  while(getline(fin, str)){
-    help.push_back(str_to_charstar(str));
-  }
-}
-
-std::vector<std::string> parse_msg(char* msg){
-  std::string str;
-  std::vector<std::string> parsed;
-  for(int i = 0; i < strlen(msg); i++){
-    if(msg[i] == ' '){
-      parsed.push_back(str);
-      str = "";
-      continue;
-    }
-    str += msg[i];
-  }
-  if(str != "")
-    parsed.push_back(str);
-  return parsed;
-}
-
 bool Server::find_username(std::string username){
   for(int i = 0; i < users_list.size(); i++)
     if(users_list[i].get_username() == username)
@@ -186,6 +127,7 @@ bool Server::find_password(std::string password, std::string username){
       return true;
   return false;
 }
+
 void Server::handle_user(std::string* loggedInUsername, bool* user, int commandSocket, std::vector<std::string> parsed){
   if(parsed.size() != 2){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
@@ -225,6 +167,8 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_pwd(parsed, directory, sock->commandSocket, user, pass, directory);
       else if(parsed[0] == "cwd")
         handle_cwd(parsed, sock->commandSocket, user, pass, &directory);
+      else if(parsed[0] == "mkd")
+        handle_mkd(parsed, sock->commandSocket, user, pass, directory);
       delete in;
   }
 }
@@ -303,7 +247,7 @@ void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, bool
   else{
     std::string path = rmv_cwd(*cwd);
     path = get_working_path() + path + "/" + parsed[1];
-    if(doeDirExist(path))
+    if(doesDirExist(path))
       *cwd = *cwd + "/" + parsed[1];
     else{
       send(commandSocket, "500: Error", 11, 0);
@@ -311,6 +255,84 @@ void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, bool
     }
   }
   send(commandSocket, "250: Successful change.", 24, 0);
+}
+
+void Server::handle_mkd(std::vector<std::string> parsed, int commandSocket, bool user, bool pass, std::string cwd){
+  if(parsed.size() != 2){
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    return;
+  }
+  if(!user || !pass){
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    return;
+  }
+  std::string path = rmv_cwd(cwd);
+  path = get_working_path() + path + "/" + parsed[1];
+  if(doesDirExist(path)){
+    send(commandSocket, "500: Error", 11, 0);
+    return;
+  }
+  mkdir(path.c_str(), 0777);
+  std::string msg = "257: " + cwd + "/" + parsed[1] + " created.";
+  send(commandSocket, msg.c_str(), msg.size(), 0);
+}
+
+char * str_to_charstar(std::string s){
+  char * p = new char[s.length() + 1];
+  int i;
+  for (i = 0; i < s.length(); i++)
+      p[i] = s[i];
+  p[s.length()] ='\0';
+  return p;
+}
+
+static char *itoa_simple_helper(char *dest, int i) {
+  if (i <= -10) {
+    dest = itoa_simple_helper(dest, i/10);
+  }
+  *dest++ = '0' - i%10;
+  return dest;
+}
+
+char *itoa_simple(char *dest, int i) {
+  char *s = dest;
+  if (i < 0) {
+    *s++ = '-';
+  } else {
+    i = -i;
+  }
+  *itoa_simple_helper(s, i) = '\0';
+  return dest;
+}
+
+bool file_exists(const char* filename){
+    std::ifstream infile(filename);
+    return infile.good();
+}
+
+void Server::read_help(){
+  std::ifstream fin;
+  fin.open("help.txt");
+  std::string str;
+  while(getline(fin, str)){
+    help.push_back(str_to_charstar(str));
+  }
+}
+
+std::vector<std::string> parse_msg(char* msg){
+  std::string str;
+  std::vector<std::string> parsed;
+  for(int i = 0; i < strlen(msg); i++){
+    if(msg[i] == ' '){
+      parsed.push_back(str);
+      str = "";
+      continue;
+    }
+    str += msg[i];
+  }
+  if(str != "")
+    parsed.push_back(str);
+  return parsed;
 }
 
 std::string rmv_cwd(std::string path){
@@ -328,7 +350,7 @@ std::string rmv_cwd(std::string path){
   return str;
 }
 
-bool doeDirExist(std::string dir){
+bool doesDirExist(std::string dir){
   struct stat buffer;
   return (stat (dir.c_str(), &buffer) == 0);
 }

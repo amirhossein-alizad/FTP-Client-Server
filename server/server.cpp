@@ -209,7 +209,7 @@ void Server::handle_user(std::string* loggedInUsername, bool* user, int commandS
 void Server::handleIncomingInformation(void* newSocket){
   bool user = false, pass = false;
   socketData * sock = (socketData *)newSocket;
-  std::string loggedInUsername, directory = get_working_path();
+  std::string loggedInUsername, directory = "./server";
   bool isAdmin;
   while(1){
       char * in = new char[256];
@@ -217,12 +217,14 @@ void Server::handleIncomingInformation(void* newSocket){
       std::vector<std::string> parsed = parse_command(in);
       if(parsed[0] == "user")
         handle_user(&loggedInUsername, &user, sock->commandSocket, parsed);
-      if(parsed[0] == "pass")
+      else if(parsed[0] == "pass")
         handle_pass(loggedInUsername, &user, &pass, sock->commandSocket, parsed);
-      if(parsed[0] == "help")
+      else if(parsed[0] == "help")
         handle_help(parsed, sock->commandSocket, user, pass);
-      if(parsed[0] == "pwd")
-        handle_pwd(parsed, directory, sock->commandSocket, user, pass);
+      else if(parsed[0] == "pwd")
+        handle_pwd(parsed, directory, sock->commandSocket, user, pass, directory);
+      else if(parsed[0] == "cwd")
+        handle_cwd(parsed, sock->commandSocket, user, pass, &directory);
       delete in;
   }
 }
@@ -267,7 +269,7 @@ void Server::handle_help(std::vector<std::string> parsed, int commandSocket, boo
   send(commandSocket, "DONE", 5, 0);
 }
 
-void Server::handle_pwd(std::vector<std::string> parsed, std::string directory, int commandSocket, bool user, bool pass){
+void Server::handle_pwd(std::vector<std::string> parsed, std::string directory, int commandSocket, bool user, bool pass, std::string path){
   if(parsed.size() != 1){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
     return;
@@ -276,20 +278,68 @@ void Server::handle_pwd(std::vector<std::string> parsed, std::string directory, 
     send(commandSocket, "332: Need account for login.", 29, 0);
     return;
   }
-  char cwd[256];
-  char default_path[256];
-  getcwd(default_path, 256);
-  chdir("..");
-  getcwd(cwd, 256);
-  chdir(default_path);
-  std::string path = std::string(default_path).substr(std::string(cwd).size(), std::string(default_path).size());
-  if (path == "/server")
-      path =  "257: ./server";
-  else path =  "257: " + path;
+  path = "257: " + path;
   send(commandSocket, path.c_str(), path.size(), 0);
 }
 
 std::string get_working_path(){
    char temp[256];
    return ( getcwd(temp, sizeof(temp)) ? std::string( temp ) : std::string("") );
+}
+
+void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, bool user, bool pass, std::string* cwd){
+  if(parsed.size() < 1 || parsed.size() > 2){
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    return;
+  }
+  if(!user || !pass){
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    return;
+  }
+  if(parsed.size() == 1 || (parsed[1] == ".." && *cwd == "./server"))
+    *cwd = "./server";
+  else if(parsed[1] == ".." && *cwd != "./server")
+    *cwd = move_back(*cwd);
+  else{
+    std::string path = rmv_cwd(*cwd);
+    path = get_working_path() + path + "/" + parsed[1];
+    if(doeDirExist(path))
+      *cwd = *cwd + "/" + parsed[1];
+    else{
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+  }
+  send(commandSocket, "250: Successful change.", 24, 0);
+}
+
+std::string rmv_cwd(std::string path){
+  std::string str;
+  int i = 0;
+  while(str != "./server"){
+    str += path[i];
+    i++;
+  }
+  str = "";
+  while(i < path.size()){
+    str += path[i];
+    i++;
+  }
+  return str;
+}
+
+bool doeDirExist(std::string dir){
+  struct stat buffer;
+  return (stat (dir.c_str(), &buffer) == 0);
+}
+
+std::string move_back(std::string path){
+  int i = path.size() - 1;
+  std::string newPath;
+  while(path[i] != '/')
+    i--;
+  for(int j = 0; j < i; j++){
+    newPath += path[j];
+  }
+  return newPath;
 }

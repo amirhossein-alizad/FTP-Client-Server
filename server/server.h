@@ -17,6 +17,7 @@
 #include <fstream>
 #include <chrono>
 #include <ctime> 
+#include <sys/stat.h>
 #include <pthread.h>
 #include "../Json/json.h"
 #include "socketData.h"
@@ -56,7 +57,8 @@ public:
   void handleIncomingInformation(void* );
   void handle_pass(std::string, bool*, bool*, int, std::vector<std::string>);
   void handle_help(std::vector<std::string>, int, bool, bool);
-  void handle_pwd(std::vector<std::string>, std::string, int, bool, bool);
+  void handle_cwd(std::vector<std::string>, int, bool, bool, std::string*);
+  void handle_pwd(std::vector<std::string>, std::string, int, bool, bool, std::string);
   static std::vector<std::string> parse_command(char command[]){
       std::vector<std::string> parsed;
       std::string str;
@@ -81,3 +83,6 @@ bool file_exists(const char*);
 std::vector<std::string> parse_msg(char* msg);
 std::vector<std::string> ls(std::string);
 std::string get_working_path();
+std::string rmv_cwd(std::string path);
+bool doeDirExist(std::string dir);
+std::string move_back(std::string path);

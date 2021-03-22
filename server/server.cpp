@@ -169,6 +169,8 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_cwd(parsed, sock->commandSocket, user, pass, &directory);
       else if(parsed[0] == "mkd")
         handle_mkd(parsed, sock->commandSocket, user, pass, directory);
+      else if(parsed[0] == "dele")
+        handle_dele(parsed, sock->commandSocket, user, pass, directory);
       delete in;
   }
 }
@@ -275,6 +277,40 @@ void Server::handle_mkd(std::vector<std::string> parsed, int commandSocket, bool
   mkdir(path.c_str(), 0777);
   std::string msg = "257: " + cwd + "/" + parsed[1] + " created.";
   send(commandSocket, msg.c_str(), msg.size(), 0);
+}
+
+void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, bool user, bool pass, std::string cwd){
+  if(parsed.size() != 3){
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    return;
+  }
+  if(!user || !pass){
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    return;
+  }
+  if(parsed[1] == "-d"){
+    std::string path = rmv_cwd(cwd);
+    path = get_working_path() + path + "/" + parsed[2];
+    if(!doesDirExist(path)){
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+    rmdir(path.c_str());
+    std::string msg = "250: " + cwd + "/" + parsed[2] + " deleted.";
+    send(commandSocket, msg.c_str(), msg.size(), 0);
+  }
+  else if(parsed[1] == "-f"){
+    std::string path = rmv_cwd(cwd);
+    path = get_working_path() + path + "/" + parsed[2];
+    if(!file_exists(path.c_str())){
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+    unlink(path.c_str());
+    std::string msg = "250: " + cwd + "/" + parsed[2] + " deleted.";
+    send(commandSocket, msg.c_str(), msg.size(), 0);
+  }
+  else send(commandSocket, "500: Error", 11, 0);
 }
 
 char * str_to_charstar(std::string s){

@@ -22,3 +22,5 @@
 char * str_to_charstar(std::string s);
 void connectChannels(char* argv[]);
 void informationHandle();
+void handle_help();
+void handle_ls();

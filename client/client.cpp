@@ -49,24 +49,58 @@ void informationHandle(){
         exit(EXIT_FAILURE);
     if(strcmp(in, "exit") == 0)
         exit(EXIT_SUCCESS);
-    if(strcmp(in, "help") == 0){
-        char* msg = new char[256]; 
-        recv(broadcastFD, msg, 256, 0);
-        std::cout<<msg<<std::endl;
-        if(strcmp(msg, "214") != 0)
-            return;
-        delete msg;
-        while(1){
-            char* newmsg = new char[512];
-            recv(broadcastFD, newmsg, 512, 0);
-            std::cout<<strlen(newmsg)<<std::endl;
-            if(strcmp(newmsg, "DONE\n") == 0)
-                return;
-            std::cout<<newmsg<<std::endl;
-            delete newmsg;
-        } 
-    }
+    if(strcmp(in, "help") == 0)
+        handle_help();
+    else if(strcmp(in, "ls") == 0)
+        handle_ls();
     char* msg = new char[256]; 
     recv(broadcastFD, msg, 256, 0);
     std::cout<<msg<<std::endl;
+}
+
+
+void handle_help(){
+    char* msg = new char[256]; 
+    recv(broadcastFD, msg, 256, 0);
+    msg[strlen(msg)] = '\0';
+    std::cout<<msg<<std::endl;
+    if(strcmp(msg, "214") != 0)
+        return;
+    delete msg;
+    while(1){
+        char* newmsg = new char[512];
+        recv(broadcastFD, newmsg, 512, 0);
+        msg[strlen(newmsg)] = '\0';
+        if(strcmp(newmsg, "DONE") == 0)
+            return;
+        std::cout<<newmsg<<std::endl;
+        delete newmsg;
+    }
+}
+
+void handle_ls(){
+    char* msg = new char[256]; 
+    recv(broadcastFD, msg, 256, 0);
+    msg[strlen(msg)] = '\0';
+    if(strcmp(msg, "!") == 0){
+        delete msg;
+        msg = new char[256];
+        recv(broadcastFD, msg, 256, 0);
+        std::cout<<msg<<std::endl;
+        return;
+    }
+    while(1){
+        delete msg;
+        msg = new char[256];
+        recv(dataFD, msg, 256, 0);
+        msg[strlen(msg)] = '\0';
+        if(strcmp(msg, "#") == 0){
+            delete msg;
+            msg = new char[256];
+            recv(broadcastFD, msg, 256, 0);
+            std::cout<<msg<<std::endl;
+            return;
+        }
+        std::cout<<msg<<std::endl;
+    }
 }

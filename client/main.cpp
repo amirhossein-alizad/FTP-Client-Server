@@ -7,7 +7,6 @@ int main(int argc, char *argv[])
     ports[0] = str_to_charstar(getCommandPort());
     ports[1] = str_to_charstar(getDataPort());
     connectChannels(ports);
-    while(1){
+    while(1)
         informationHandle();
-    }
 }

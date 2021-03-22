@@ -191,6 +191,8 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_dele(parsed, sock->commandSocket, user, pass, directory, isAdmin);
       else if(parsed[0] == "ls")
         handle_ls(parsed, sock->commandSocket, sock->dataSocket, user, pass, directory);
+      else if(parsed[0] == "quit")
+        handle_quit(parsed, sock->commandSocket, &user, &pass, &directory, &isAdmin, &loggedInUsername);
       delete in;
   }
 }
@@ -289,12 +291,15 @@ void Server::handle_mkd(std::vector<std::string> parsed, int commandSocket, bool
     send(commandSocket, "332: Need account for login.", 29, 0);
     return;
   }
-  std::string path = rmv_cwd(cwd);
-  path = get_working_path() + path + "/" + parsed[1];
-  if(doesDirExist(path)){
+  std::string temp1 = rmv_cwd(cwd);
+  temp1 = get_working_path() + temp1 + "/" + parsed[1];
+  std::string temp2 = rmv_cwd(cwd);
+  temp2 = get_working_path() + temp2 + "/" + findDirectory(parsed[1]);
+  if(doesDirExist(temp1) || !doesDirExist(temp2)){
     send(commandSocket, "500: Error", 11, 0);
     return;
   }
+  std::string path = temp1;
   mkdir(path.c_str(), 0777);
   std::string msg = "257: " + cwd + "/" + parsed[1] + " created.";
   send(commandSocket, msg.c_str(), msg.size(), 0);
@@ -363,6 +368,22 @@ void Server::handle_ls(std::vector<std::string> parsed, int commandSocket, int d
     send(commandSocket, "226: List transfer done.", 25, 0);
     closedir (dir);
   }
+}
+
+void Server::handle_quit(std::vector<std::string> parsed, int commandSocket, bool* user, bool* pass, std::string* directory,
+                   bool* isAdmin, std::string *loggedInUsername)
+{
+  if(parsed.size() != 1){
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    return;
+  }
+  if(!user || !pass){
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    return;
+  }
+  *user = false; *pass = false; *isAdmin = false;
+  *directory = "./server"; *loggedInUsername = "";
+  send(commandSocket, "221: Successful Quit.", 22, 0);
 }
 
 char * str_to_charstar(std::string s){
@@ -464,6 +485,19 @@ std::string findFileName(std::string path){
   i++;
   std::string str;
   for(j = i; j < path.size(); j++)
+    str += path[j];
+  return str;
+}
+
+std::string findDirectory(std::string path){
+  int i = 0, j = 0;
+  while(j < path.size()){
+    if(path[j] == '/')
+      i = j;
+    j++;
+  }
+  std::string str;
+  for(j = 0; j < i; j++)
     str += path[j];
   return str;
 }

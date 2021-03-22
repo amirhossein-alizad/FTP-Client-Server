@@ -66,6 +66,7 @@ public:
   void handle_dele(std::vector<std::string>, int, bool, bool, std::string, bool);
   void handle_ls(std::vector<std::string>, int, int, bool, bool, std::string);
   std::vector<std::string> parse_command(char command[]);
+  void handle_quit(std::vector<std::string>, int, bool*, bool*, std::string*,bool*, std::string*);
 };
 
 char * str_to_charstar(std::string s);
@@ -79,3 +80,4 @@ std::string rmv_cwd(std::string path);
 bool doesDirExist(std::string dir);
 std::string move_back(std::string path);
 std::string findFileName(std::string path);
+std::string findDirectory(std::string path);

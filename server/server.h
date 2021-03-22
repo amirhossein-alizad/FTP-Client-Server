@@ -17,6 +17,7 @@
 #include <fstream>
 #include <chrono>
 #include <ctime> 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <pthread.h>
 #include "../Json/json.h"
@@ -61,6 +62,7 @@ public:
   void handle_pwd(std::vector<std::string>, std::string, int, bool, bool, std::string);
   void handle_mkd(std::vector<std::string>, int, bool, bool, std::string);
   void handle_dele(std::vector<std::string>, int, bool, bool, std::string);
+  void handle_ls(std::vector<std::string>, int, int, bool, bool, std::string);
   static std::vector<std::string> parse_command(char command[]){
       std::vector<std::string> parsed;
       std::string str;

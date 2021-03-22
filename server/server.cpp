@@ -171,6 +171,8 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_mkd(parsed, sock->commandSocket, user, pass, directory);
       else if(parsed[0] == "dele")
         handle_dele(parsed, sock->commandSocket, user, pass, directory);
+      else if(parsed[0] == "ls")
+        handle_ls(parsed, sock->commandSocket, sock->dataSocket, user, pass, directory);
       delete in;
   }
 }
@@ -311,6 +313,33 @@ void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, boo
     send(commandSocket, msg.c_str(), msg.size(), 0);
   }
   else send(commandSocket, "500: Error", 11, 0);
+}
+
+void Server::handle_ls(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool user, bool pass, std::string cwd){
+  if(parsed.size() != 1){
+    send(commandSocket, "!", 2, 0);
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    return;
+  }
+  if(!user || !pass){
+    send(commandSocket, "!", 2, 0);
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    return;
+  }
+  std::string path = get_working_path() + rmv_cwd(cwd);
+  DIR *dir;
+  struct dirent *ent;
+  if ((dir = opendir (path.c_str())) != NULL) {
+    send(commandSocket, "#", 2, 0);
+    while ((ent = readdir (dir)) != NULL){
+      if(strcmp(ent->d_name, "..")==0 || strcmp(ent->d_name, ".") == 0)
+        continue;
+      send(dataSocket, ent->d_name, sizeof(ent->d_name), 0);
+    }
+    send(dataSocket, "#", 2, 0);
+    send(commandSocket, "226: List transfer done.", 25, 0);
+    closedir (dir);
+  }
 }
 
 char * str_to_charstar(std::string s){

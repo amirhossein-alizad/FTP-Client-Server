@@ -65,21 +65,7 @@ public:
   void handle_mkd(std::vector<std::string>, int, bool, bool, std::string);
   void handle_dele(std::vector<std::string>, int, bool, bool, std::string, bool);
   void handle_ls(std::vector<std::string>, int, int, bool, bool, std::string);
-  static std::vector<std::string> parse_command(char command[]){
-      std::vector<std::string> parsed;
-      std::string str;
-      for(int i = 0; i < strlen(command); i++){
-        if(command[i] == ' ' || command[i] == '\n'){
-          parsed.push_back(str);
-          str = "";
-          continue;
-        }
-        str += command[i];
-      }
-      if(str != "")
-        parsed.push_back(str);
-      return parsed;
-  }
+  std::vector<std::string> parse_command(char command[]);
 };
 
 char * str_to_charstar(std::string s);

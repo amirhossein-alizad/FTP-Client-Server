@@ -23,6 +23,22 @@ void Server::parse_json(){
   }
 }
 
+std::vector<std::string> Server::parse_command(char command[]){
+    std::vector<std::string> parsed;
+    std::string str;
+    for(int i = 0; i < strlen(command); i++){
+      if(command[i] == ' ' || command[i] == '\n'){
+        parsed.push_back(str);
+        str = "";
+        continue;
+      }
+      str += command[i];
+    }
+    if(str != "")
+      parsed.push_back(str);
+    return parsed;
+}
+
 socketData Server::handleIncomingConnections(){
   int reqSocket;
   int dataSocket;

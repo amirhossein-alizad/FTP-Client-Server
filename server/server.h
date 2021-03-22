@@ -20,8 +20,10 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <algorithm>
 #include "../Json/json.h"
 #include "socketData.h"
+
 
 #define REQUEST_ADDR "127.0.0.1"
 #define DATA_ADDR "127.0.0.2"
@@ -53,15 +55,15 @@ public:
   void connectChannels(char* argv[]);
   void read_help();
   bool find_username(std::string );
-  bool find_password(std::string , std::string );
+  bool find_password(std::string , std::string, bool*);
   void handle_user(std::string*, bool*, int, std::vector<std::string>);
   void handleIncomingInformation(void* );
-  void handle_pass(std::string, bool*, bool*, int, std::vector<std::string>);
+  void handle_pass(std::string, bool*, bool*, int, std::vector<std::string>, bool*);
   void handle_help(std::vector<std::string>, int, bool, bool);
   void handle_cwd(std::vector<std::string>, int, bool, bool, std::string*);
   void handle_pwd(std::vector<std::string>, std::string, int, bool, bool, std::string);
   void handle_mkd(std::vector<std::string>, int, bool, bool, std::string);
-  void handle_dele(std::vector<std::string>, int, bool, bool, std::string);
+  void handle_dele(std::vector<std::string>, int, bool, bool, std::string, bool);
   void handle_ls(std::vector<std::string>, int, int, bool, bool, std::string);
   static std::vector<std::string> parse_command(char command[]){
       std::vector<std::string> parsed;
@@ -90,3 +92,4 @@ std::string get_working_path();
 std::string rmv_cwd(std::string path);
 bool doesDirExist(std::string dir);
 std::string move_back(std::string path);
+std::string findFileName(std::string path);

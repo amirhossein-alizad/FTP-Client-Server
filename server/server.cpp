@@ -121,10 +121,12 @@ bool Server::find_username(std::string username){
   return false;
 }
 
-bool Server::find_password(std::string password, std::string username){
+bool Server::find_password(std::string password, std::string username, bool* isAdmin){
   for(int i = 0; i < users_list.size(); i++)
-    if(users_list[i].get_password() == password && users_list[i].get_username() == username)
+    if(users_list[i].get_password() == password && users_list[i].get_username() == username){
+      *isAdmin = users_list[i].is_admin();
       return true;
+    }
   return false;
 }
 
@@ -152,7 +154,7 @@ void Server::handleIncomingInformation(void* newSocket){
   bool user = false, pass = false;
   socketData * sock = (socketData *)newSocket;
   std::string loggedInUsername, directory = "./server";
-  bool isAdmin;
+  bool isAdmin = false;
   while(1){
       char * in = new char[256];
       recv(sock->commandSocket, in, 256, 0);
@@ -160,7 +162,7 @@ void Server::handleIncomingInformation(void* newSocket){
       if(parsed[0] == "user")
         handle_user(&loggedInUsername, &user, sock->commandSocket, parsed);
       else if(parsed[0] == "pass")
-        handle_pass(loggedInUsername, &user, &pass, sock->commandSocket, parsed);
+        handle_pass(loggedInUsername, &user, &pass, sock->commandSocket, parsed, &isAdmin);
       else if(parsed[0] == "help")
         handle_help(parsed, sock->commandSocket, user, pass);
       else if(parsed[0] == "pwd")
@@ -170,14 +172,14 @@ void Server::handleIncomingInformation(void* newSocket){
       else if(parsed[0] == "mkd")
         handle_mkd(parsed, sock->commandSocket, user, pass, directory);
       else if(parsed[0] == "dele")
-        handle_dele(parsed, sock->commandSocket, user, pass, directory);
+        handle_dele(parsed, sock->commandSocket, user, pass, directory, isAdmin);
       else if(parsed[0] == "ls")
         handle_ls(parsed, sock->commandSocket, sock->dataSocket, user, pass, directory);
       delete in;
   }
 }
 
-void Server::handle_pass(std::string username, bool* user, bool* pass, int commandSocket, std::vector<std::string> parsed){
+void Server::handle_pass(std::string username, bool* user, bool* pass, int commandSocket, std::vector<std::string> parsed, bool* isAdmin){
   if(parsed.size() != 2){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
     *pass = false;
@@ -188,9 +190,10 @@ void Server::handle_pass(std::string username, bool* user, bool* pass, int comma
     *pass = false;
   }
   else{
-    if(find_password(parsed[1], username)){
+    if(find_password(parsed[1], username, isAdmin)){
       send(commandSocket, "230: User logged in, proceed. Logged out if appropriate.", 57, 0);
       *pass = true;
+      
     }
     else{
       send(commandSocket, "430: Invalid username or password.", 35, 0);
@@ -281,7 +284,7 @@ void Server::handle_mkd(std::vector<std::string> parsed, int commandSocket, bool
   send(commandSocket, msg.c_str(), msg.size(), 0);
 }
 
-void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, bool user, bool pass, std::string cwd){
+void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, bool user, bool pass, std::string cwd, bool isAdmin){
   if(parsed.size() != 3){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
     return;
@@ -306,6 +309,10 @@ void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, boo
     path = get_working_path() + path + "/" + parsed[2];
     if(!file_exists(path.c_str())){
       send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+    if(std::count(protected_files.begin(), protected_files.end(), findFileName(parsed[2])) && !isAdmin){
+      send(commandSocket, "550: File unavailable.", 23, 0);
       return;
     }
     unlink(path.c_str());
@@ -429,4 +436,18 @@ std::string move_back(std::string path){
     newPath += path[j];
   }
   return newPath;
+}
+
+std::string findFileName(std::string path){
+  int i = 0, j = 0;
+  while(j < path.size()){
+    if(path[j] == '/')
+      i = j;
+    j++;
+  }
+  i++;
+  std::string str;
+  for(j = i; j < path.size(); j++)
+    str += path[j];
+  return str;
 }

@@ -49,10 +49,14 @@ void informationHandle(){
         exit(EXIT_FAILURE);
     if(strcmp(in, "exit") == 0)
         exit(EXIT_SUCCESS);
-    if(strcmp(in, "help") == 0)
+    if(strcmp(in, "help") == 0){
         handle_help();
-    else if(strcmp(in, "ls") == 0)
+        return;
+    }
+    else if(strcmp(in, "ls") == 0){
         handle_ls();
+        return;
+    }
     char* msg = new char[256]; 
     recv(broadcastFD, msg, 256, 0);
     std::cout<<msg<<std::endl;

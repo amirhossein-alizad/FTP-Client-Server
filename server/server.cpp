@@ -206,6 +206,8 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_dele(parsed, sock->commandSocket, sock->dataSocket, user, pass, directory, isAdmin, loggedInUsername);
       else if(parsed[0] == "ls")
         handle_ls(parsed, sock->commandSocket, sock->dataSocket, user, pass, directory, loggedInUsername);
+      else if(parsed[0] == "rename")
+        handle_rename(parsed, sock->commandSocket, sock->dataSocket, user, pass, isAdmin, directory, loggedInUsername);
       else if(parsed[0] == "quit")
         handle_quit(parsed, sock->commandSocket, sock->dataSocket, &user, &pass, &directory, &isAdmin, &loggedInUsername);
       delete in;
@@ -434,8 +436,7 @@ void Server::handle_ls(std::vector<std::string> parsed, int commandSocket, int d
 }
 
 void Server::handle_quit(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool* user, bool* pass, std::string* directory,
-                   bool* isAdmin, std::string *loggedInUsername)
-{
+                   bool* isAdmin, std::string *loggedInUsername){
   if(!user || !pass){
     send(commandSocket, "332: Need account for login.", 29, 0);
     printLoginError("quit", commandSocket, dataSocket);
@@ -460,4 +461,38 @@ void Server::read_help(){
   while(getline(fin, str)){
     help.push_back(str_to_charstar(str));
   }
+}
+
+void Server::handle_rename(std::vector<std::string>parsed, int commandSocket, int dataSocket, bool user, bool pass, bool isAdmin, std::string cwd, std::string loggedInUsername){
+  if(!user || !pass){
+    send(commandSocket, "332: Need account for login.", 29, 0);
+    printLoginError("rename", commandSocket, dataSocket);
+    return;
+  }
+  if(parsed.size() != 3){
+    send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
+    printSyntaxError("rename", commandSocket, dataSocket, loggedInUsername);
+    return;
+  }
+  std::string path = get_working_path() + fix_addres(cwd);
+  path += "/" + parsed[1];
+  if(!file_exists(path.c_str())){
+      logs<<"client "<<loggedInUsername<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" was renaming a file that didn't exist."<<std::endl;
+      printTime();
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+  }
+  std::string file = findFileName(parsed[1]);
+  if(std::count(protected_files.begin(), protected_files.end(), file) > 0 && !isAdmin){
+    logs<<"client "<<loggedInUsername<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" was deleting a file that was inaccessible."<<std::endl;
+    printTime();
+    send(commandSocket, "550: File unavailable.", 23, 0);
+    return;
+  }
+  std::string command = "mv " + get_working_path() + fix_addres(cwd) +"/"+ parsed[1] + " " + get_working_path() + fix_addres(cwd)
+   +"/"+ parsed[1].substr(0, parsed[1].find(findFileName(parsed[1]))) + findFileName(parsed[2]);
+  system(command.c_str());
+  send(commandSocket, "250: Successful change.", 24, 0);
+  logs<<"client "<<loggedInUsername<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" renamed file: "<<cwd<<"/"<<parsed[1] << " to: "<<parsed[2]<<std::endl;
+  printTime();
 }

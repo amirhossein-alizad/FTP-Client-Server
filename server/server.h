@@ -43,4 +43,5 @@ class  Server{
     void printTime();
     void printLoginError(std::string, int, int);
     void printSyntaxError(std::string, int, int, std::string);
+    void handle_rename(std::vector<std::string>, int, int, bool, bool, bool, std::string, std::string);
 };

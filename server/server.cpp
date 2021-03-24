@@ -161,6 +161,7 @@ void Server::handle_user(std::string* loggedInUsername, bool* user, bool pass, i
     send(commandSocket, "500: Error", 12, 0);
     logs<<"client with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", tried to change username when logged in."<<std::endl;
     printTime();
+    return;
   }
   if(parsed.size() != 2){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
@@ -215,11 +216,19 @@ void Server::handleIncomingInformation(void* newSocket){
         handle_rename(parsed, sock->commandSocket, sock->dataSocket, user, pass, isAdmin, directory, loggedInUsername);
       else if(parsed[0] == "quit")
         handle_quit(parsed, sock->commandSocket, sock->dataSocket, &user, &pass, &directory, &isAdmin, &loggedInUsername);
+      else
+        handle_error(sock->commandSocket, sock->dataSocket);
       delete in;
   }
 }
 
 void Server::handle_pass(std::string username, bool* user, bool* pass, int commandSocket, int dataSocket, std::vector<std::string> parsed, bool* isAdmin){
+  if(*user && *pass){
+    send(commandSocket, "500: Error", 12, 0);
+    logs<<"client with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", tried to enter password when logged in."<<std::endl;
+    printTime();
+    return;
+  }
   if(!(*user)){
     send(commandSocket, "503: Bad sequence of commands.", 31, 0);
     logs<<"client with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", entered password before entering username."<<std::endl;
@@ -528,5 +537,11 @@ void Server::handle_rename(std::vector<std::string>parsed, int commandSocket, in
   system(command.c_str());
   send(commandSocket, "250: Successful change.", 24, 0);
   logs<<"client "<<loggedInUsername<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" renamed file: "<<cwd<<"/"<<parsed[1] << " to: "<<parsed[2]<<std::endl;
+  printTime();
+}
+
+void Server::handle_error(int commandSocket, int dataSocket){
+  send(commandSocket, "500: Error", 11, 0);
+  logs<<"client with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", entered an unknown command."<<std::endl;
   printTime();
 }

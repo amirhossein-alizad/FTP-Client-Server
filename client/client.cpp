@@ -71,8 +71,8 @@ void handle_help(){
     if(strcmp(msg, "214") != 0)
         return;
     delete msg;
-    char* in = new char[2048];
-    recv(broadcastFD, in, 2048, 0);
+    char* in = new char[1024];
+    recv(broadcastFD, in, 1024, 0);
     std::cout<<in<<std::endl;
     delete in;
 }

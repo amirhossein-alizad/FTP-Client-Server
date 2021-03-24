@@ -71,15 +71,10 @@ void handle_help(){
     if(strcmp(msg, "214") != 0)
         return;
     delete msg;
-    while(1){
-        char* newmsg = new char[512];
-        recv(broadcastFD, newmsg, 512, 0);
-        msg[strlen(newmsg)] = '\0';
-        if(strcmp(newmsg, "DONE") == 0)
-            return;
-        std::cout<<newmsg<<std::endl;
-        delete newmsg;
-    }
+    char* in = new char[2048];
+    recv(broadcastFD, in, 2048, 0);
+    std::cout<<in<<std::endl;
+    delete in;
 }
 
 void handle_ls(){

@@ -286,6 +286,29 @@ void Server::handle_pwd(std::vector<std::string> parsed, std::string directory,
   printTime();
 }
 
+std::string Server::checkForServer(std::string cwd){
+  bool flag = false;
+  int j = 0;
+  std::string str;
+  for(int i = 0; i < cwd.size(); i++){
+    str += cwd[i];
+    if(str == "./server"){
+      flag = true;
+      j = i + 2;
+      break;
+    }
+    else if( i > 7 )
+      break;
+  }
+  if(flag){
+    str = "";
+    for(int i = j; i < cwd.size(); i++)
+      str += cwd[i];
+    return str;
+  }
+  return cwd;
+} 
+
 void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool user, bool pass, std::string* cwd, std::string username){
   if(!user || !pass){
     send(commandSocket, "332: Need account for login.", 29, 0);
@@ -302,9 +325,13 @@ void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, int 
   else if(parsed[1] == ".." && *cwd != "./server")
     *cwd = move_back(*cwd);
   else{
+    std::string newCWD = checkForServer(parsed[1]);
     std::string path = fix_addres(*cwd);
     path = get_working_path() + path + "/" + parsed[1];
-    if(doesDirExist(path))
+    if(doesDirExist(get_working_path() + "/" + newCWD)){
+      *cwd = "./server/" + newCWD;
+    }
+    else if(doesDirExist(path))
       *cwd = *cwd + "/" + parsed[1];
     else{
       send(commandSocket, "500: Error", 11, 0);

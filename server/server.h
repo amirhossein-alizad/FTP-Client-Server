@@ -16,20 +16,19 @@ class  Server{
     std::vector<std::string> protected_files;
     std::ofstream logs;
     std::vector<std::string> login_commands{"pwd", "mkd", "dele", "ls", "cwd", "rename", "retr", "help", "quit"};
-    std::vector<char*> help;
+    std::vector<std::string> help;
 
   public:
     Server(){
       parse_json();
-      read_help();
     }
     void parse_json();
     socketData handleIncomingConnections();
     void connectChannels(char* argv[]);
-    void read_help();
+    void send_help(int);
     bool find_username(std::string );
     bool find_password(std::string , std::string, bool*);
-    void handle_user(std::string*, bool*, int, int, std::vector<std::string>);
+    void handle_user(std::string*, bool*, bool, int, int, std::vector<std::string>);
     void handleIncomingInformation(void* );
     void handle_pass(std::string, bool*, bool*, int, int, std::vector<std::string>, bool*);
     void handle_help(std::vector<std::string>, int, int, bool, bool, std::string);

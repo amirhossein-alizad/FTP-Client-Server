@@ -156,7 +156,12 @@ bool Server::find_password(std::string password, std::string username, bool* isA
   return false;
 }
 
-void Server::handle_user(std::string* loggedInUsername, bool* user, int commandSocket, int dataSocket, std::vector<std::string> parsed){
+void Server::handle_user(std::string* loggedInUsername, bool* user, bool pass, int commandSocket, int dataSocket, std::vector<std::string> parsed){
+  if(*user && pass){
+    send(commandSocket, "500: Error", 12, 0);
+    logs<<"client with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", tried to change username when logged in."<<std::endl;
+    printTime();
+  }
   if(parsed.size() != 2){
     send(commandSocket, "501: Syntax error in parameters or arguments.", 46, 0);
     printSyntaxError("user", commandSocket, dataSocket, *loggedInUsername);
@@ -191,7 +196,7 @@ void Server::handleIncomingInformation(void* newSocket){
       recv(sock->commandSocket, in, 256, 0);
       std::vector<std::string> parsed = parse_command(in);
       if(parsed[0] == "user")
-        handle_user(&loggedInUsername, &user, sock->commandSocket, sock->dataSocket, parsed);
+        handle_user(&loggedInUsername, &user, pass, sock->commandSocket, sock->dataSocket, parsed);
       else if(parsed[0] == "pass")
         handle_pass(loggedInUsername, &user, &pass, sock->commandSocket, sock->dataSocket, parsed, &isAdmin);
       else if(parsed[0] == "help")
@@ -245,7 +250,7 @@ void Server::handle_pass(std::string username, bool* user, bool* pass, int comma
   
 }
 
-void Server::handle_help(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool user, bool pass, std::string username){// NOT WORKING 
+void Server::handle_help(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool user, bool pass, std::string username){ 
   if(!user || !pass){
     send(commandSocket, "332: Need account for login.", 29, 0);
     printLoginError("help", commandSocket, dataSocket);
@@ -257,13 +262,8 @@ void Server::handle_help(std::vector<std::string> parsed, int commandSocket, int
     return;
   }
   send(commandSocket, "214", 4, 0);
-  std::ifstream fin;
-  fin.open("help.txt");
-  std::string str;
-  while(getline(fin, str))
-    send(commandSocket, str.c_str(), str.size(), 0);
-  send(commandSocket, "DONE", 5, 0);
-  logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<"used 'help' command.";
+  send_help(commandSocket);
+  logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", used 'help' command.";
   printTime();
 
 }
@@ -454,13 +454,20 @@ void Server::handle_quit(std::vector<std::string> parsed, int commandSocket, int
   send(commandSocket, "221: Successful Quit.", 22, 0);
 }
 
-void Server::read_help(){
-  std::ifstream fin;
-  fin.open("help.txt");
-  std::string str;
-  while(getline(fin, str)){
-    help.push_back(str_to_charstar(str));
-  }
+void Server::send_help(int commandSocket){
+  std::string str = "1-USER <username>:\nUsed for authentication, gets the username as input and if it is found gives <331:Username okay, need password> as output.";
+  str += "\n\n2-Pass <password>:\nafter inserting the username, the password is required to login to your account.";
+  str += "\n\n3-pwd:\nused to get the current working directory path.";
+  str += "\n\n4-mkd <directory path>:\nmake a neew directory in the given path.";
+  str += "\n\n5-dele -f <filename>:\nremove a file in the current working directory.";
+  str += "\n\n6-dele -d <directory path>:\ndelete a given directory.";
+  str += "\n\n7-ls:\nlist all the files in the current working directory.";
+  str += "\n\n8-cwd <path>:\nchange the working directory.\nwith \"..\" given as input you can move to the last directory.\ngiven no input as argument, you can go back to the first directory.";
+  str += "\n\n9-rename <from> <to>:\nchange the name of a file in the current working directory.";
+  str += "\n\n10-retr <name>:\nyou can download a file in the current working directory if you have the required data size.";
+  str += "\n\n11-help:\nlists all the possible commands with their manual.";
+  str += "\n\n12-quit:\nlogout of the system.";
+  send(commandSocket, str.c_str(), str.size(), 0);
 }
 
 void Server::handle_rename(std::vector<std::string>parsed, int commandSocket, int dataSocket, bool user, bool pass, bool isAdmin, std::string cwd, std::string loggedInUsername){

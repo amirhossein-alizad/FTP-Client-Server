@@ -295,21 +295,21 @@ void Server::handle_pwd(std::vector<std::string> parsed, std::string directory,
   printTime();
 }
 
-std::string Server::checkForServer(std::string cwd){
-  bool flag = false;
+std::string Server::checkForServer(std::string cwd, bool* flag){
+  *flag = false;
   int j = 0;
   std::string str;
   for(int i = 0; i < cwd.size(); i++){
     str += cwd[i];
     if(str == "./server"){
-      flag = true;
+      *flag = true;
       j = i + 2;
       break;
     }
     else if( i > 7 )
       break;
   }
-  if(flag){
+  if(*flag){
     str = "";
     for(int i = j; i < cwd.size(); i++)
       str += cwd[i];
@@ -334,7 +334,8 @@ void Server::handle_cwd(std::vector<std::string> parsed, int commandSocket, int 
   else if(parsed[1] == ".." && *cwd != "./server")
     *cwd = move_back(*cwd);
   else{
-    std::string newCWD = checkForServer(parsed[1]);
+    bool flag;
+    std::string newCWD = checkForServer(parsed[1], &flag);
     std::string path = fix_addres(*cwd);
     path = get_working_path() + path + "/" + parsed[1];
     if(doesDirExist(get_working_path() + "/" + newCWD)){
@@ -366,20 +367,37 @@ void Server::handle_mkd(std::vector<std::string> parsed, int commandSocket, int 
     printSyntaxError("mkd", commandSocket, dataSocket, username);
     return;
   }
-  std::string temp1 = fix_addres(cwd);
-  temp1 = get_working_path() + temp1 + "/" + parsed[1];
-  std::string temp2 = fix_addres(cwd);
-  temp2 = get_working_path() + temp2 + "/" + findDirectory(parsed[1]);
-  if(doesDirExist(temp1) || !doesDirExist(temp2)){
-    logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" was either creating a directory that existed befor ";
-    logs<<"or does not exist at all."<<std::endl;
-    printTime();
-    send(commandSocket, "500: Error", 11, 0);
-    return;
+  bool flag;
+  checkForServer(parsed[1], &flag);
+  std::string command = "mkdir ";
+  if(flag){
+    std::string temp1 = get_working_path() + fix_addres(parsed[1]);
+    std::string temp2 = get_working_path() + findDirectory(fix_addres(parsed[1]));
+    if(doesDirExist(temp1) || !doesDirExist(temp2)){
+      logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" was either creating a directory that existed befor ";
+      logs<<"or does not exist at all."<<std::endl;
+      printTime();
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+    command += temp1;
   }
-  std::string command = "mkdir " + temp1;
+  else{
+    std::string temp1 = fix_addres(cwd);
+    temp1 = get_working_path() + temp1 + "/" + parsed[1];
+    std::string temp2 = fix_addres(cwd);
+    temp2 = get_working_path() + temp2 + "/" + findDirectory(parsed[1]);
+    if(doesDirExist(temp1) || !doesDirExist(temp2)){
+      logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" was either creating a directory that existed befor ";
+      logs<<"or does not exist at all."<<std::endl;
+      printTime();
+      send(commandSocket, "500: Error", 11, 0);
+      return;
+    }
+    command += temp1;
+  }
   system(command.c_str());
-  std::string msg = "257: " + cwd + "/" + parsed[1] + " created.";
+  std::string msg = "257: " + (flag ? "./server" : cwd) + "/" + checkForServer(parsed[1], &flag) + " created.";
   send(commandSocket, msg.c_str(), msg.size(), 0);
   logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<" created "<<msg<<std::endl;
   printTime();

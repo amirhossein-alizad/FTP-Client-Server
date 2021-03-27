@@ -44,5 +44,5 @@ class  Server{
     void printSyntaxError(std::string, int, int, std::string);
     void handle_rename(std::vector<std::string>, int, int, bool, bool, bool, std::string, std::string);
     void handle_error(int, int);
-    std::string checkForServer(std::string cwd);
+    std::string checkForServer(std::string cwd, bool*);
 };

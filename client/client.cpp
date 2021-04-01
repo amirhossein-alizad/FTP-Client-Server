@@ -68,13 +68,14 @@ void handle_help(){
     recv(broadcastFD, msg, 256, 0);
     msg[strlen(msg)] = '\0';
     std::cout<<msg<<std::endl;
-    if(strcmp(msg, "214") != 0)
+    if(strcmp(msg, "214") != 0){
+        delete msg;
         return;
+    }
     delete msg;
-    char* in = new char[1024];
-    recv(broadcastFD, in, 1024, 0);
+    char in[1012];
+    recv(broadcastFD, in, 1012, 0);
     std::cout<<in<<std::endl;
-    delete in;
 }
 
 void handle_ls(){

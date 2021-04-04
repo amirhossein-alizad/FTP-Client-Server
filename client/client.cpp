@@ -57,6 +57,10 @@ void informationHandle(){
         handle_ls();
         return;
     }
+    else if(in[0] == 'r' && in[1] == 'e' && in[2] == 't' && in[3] == 'r' ){
+        handle_dl();
+        return;
+    }
     char* msg = new char[256]; 
     recv(broadcastFD, msg, 256, 0);
     std::cout<<msg<<std::endl;
@@ -78,29 +82,81 @@ void handle_help(){
     std::cout<<in<<std::endl;
 }
 
+void handle_dl(){
+    char* result = new char[256];
+    memset(result, 0, 256);
+    recv(broadcastFD, result, 256, 0);
+    if(result[0] == '!') {
+        // char* temp = result + 1;
+        std::cout << result+1 << std::endl;
+        return;
+    }
+
+    char* msg = new char[50];
+    memset(msg, 0, 50);
+    recv(dataFD, msg, 50, 0);
+    std::cout << msg;
+    memset(msg, 0, 50);
+    std::cout << "jajha\n";
+    for(int i = 1; ; i++) {
+        if(recv(dataFD, msg, 50, MSG_DONTWAIT) < 0)
+            break;
+        std::cout << i << std::endl;
+        std::cout << msg;
+        memset(msg, 0, 50); 
+    }
+    std::cout << std::endl;
+    memset(msg, 0, 50); 
+    recv(broadcastFD, msg, 50, 0);
+    std::cout << msg << std::endl;
+}
+
 void handle_ls(){
-    char* msg = new char[256]; 
-    recv(broadcastFD, msg, 256, 0);
-    msg[strlen(msg)] = '\0';
-    if(strcmp(msg, "!") == 0){
-        delete msg;
-        msg = new char[256];
+    char* result = new char[2];
+    memset(result, 0, 2);
+    recv(broadcastFD, result, 2, 0);
+    result[strlen(result)] = '\0';
+    if(strcmp(result, "!") == 0){
+        delete result;
+        char* msg = new char[256];
         recv(broadcastFD, msg, 256, 0);
         std::cout<<msg<<std::endl;
         return;
     }
-    while(1){
-        delete msg;
-        msg = new char[256];
-        recv(dataFD, msg, 256, 0);
-        msg[strlen(msg)] = '\0';
-        if(strcmp(msg, "#") == 0){
-            delete msg;
-            msg = new char[256];
-            recv(broadcastFD, msg, 256, 0);
-            std::cout<<msg<<std::endl;
-            return;
-        }
-        std::cout<<msg<<std::endl;
+
+    char* msg = new char[256];
+    memset(msg, 0, 256);
+    recv(dataFD, msg, 256, 0);
+    std::cout << msg;
+    memset(msg, 0, 256);
+    for(int i = 0; !(recv(dataFD, msg, 256, MSG_DONTWAIT) < 0); i++) {
+        std::cout << msg;
+        memset(msg, 0, 256); 
     }
+    recv(broadcastFD, msg, 256, 0);
+    std::cout << msg << std::endl; 
+    // char* msg = new char[256]; 
+    // recv(broadcastFD, msg, 256, 0);
+    // msg[strlen(msg)] = '\0';
+    // if(strcmp(msg, "!") == 0){
+    //     delete msg;
+    //     msg = new char[256];
+    //     recv(broadcastFD, msg, 256, 0);
+    //     std::cout<<msg<<std::endl;
+    //     return;
+    // }
+    // while(1){
+    //     delete msg;
+    //     msg = new char[256];
+    //     recv(dataFD, msg, 256, 0);
+    //     msg[strlen(msg)] = '\0';
+    //     if(strcmp(msg, "#") == 0){
+    //         delete msg;
+    //         msg = new char[256];
+    //         recv(broadcastFD, msg, 256, 0);
+    //         std::cout<<msg<<std::endl;
+    //         return;
+    //     }
+    //     std::cout<<msg<<std::endl;
+    // }
 }

@@ -37,6 +37,7 @@ class  Server{
     void handle_mkd(std::vector<std::string>, int, int, bool, bool, std::string, std::string);
     void handle_dele(std::vector<std::string>, int, int, bool, bool, std::string, bool, std::string);
     void handle_ls(std::vector<std::string>, int, int, bool, bool, std::string, std::string);
+    void handle_dl(std::vector<std::string>, int, int, bool, bool, bool, std::string, std::string);
     std::vector<std::string> parse_command(char[]);
     void handle_quit(std::vector<std::string>, int, int, bool*, bool*, std::string*,bool*, std::string*);
     void printTime();

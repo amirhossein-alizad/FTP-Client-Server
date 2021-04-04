@@ -24,3 +24,4 @@ void connectChannels(char* argv[]);
 void informationHandle();
 void handle_help();
 void handle_ls();
+void handle_dl();

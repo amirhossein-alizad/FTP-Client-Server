@@ -1,4 +1,4 @@
 *.o
-server
-client
+# server
+# client
 log.txt

@@ -8,7 +8,7 @@ User::User(std::string username_, std::string password_, bool admin_, int size_)
 }
 
 void User::change_size(int size_){
-    size += size_;
+    size -= size_;
 }
 
 std::string User::get_username(){return username;}

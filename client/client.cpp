@@ -58,7 +58,7 @@ void informationHandle(){
         return;
     }
     else if(in[0] == 'r' && in[1] == 'e' && in[2] == 't' && in[3] == 'r' ){
-        handle_dl();
+        handle_dl(in+5);
         return;
     }
     char* msg = new char[256]; 
@@ -82,33 +82,38 @@ void handle_help(){
     std::cout<<in<<std::endl;
 }
 
-void handle_dl(){
+void handle_dl(char* file_name){
     char* result = new char[256];
     memset(result, 0, 256);
     recv(broadcastFD, result, 256, 0);
     if(result[0] == '!') {
-        // char* temp = result + 1;
         std::cout << result+1 << std::endl;
         return;
     }
 
     char* msg = new char[50];
+    std::string file_content = "";
     memset(msg, 0, 50);
     recv(dataFD, msg, 50, 0);
-    std::cout << msg;
+    // std::cout << msg;
+    file_content += msg;
     memset(msg, 0, 50);
-    std::cout << "jajha\n";
     for(int i = 1; ; i++) {
-        if(recv(dataFD, msg, 50, MSG_DONTWAIT) < 0)
+        int r = recv(dataFD, msg, 50, MSG_DONTWAIT);
+        // std::cout << r << std::endl;
+        if(r <= 0)
             break;
-        std::cout << i << std::endl;
-        std::cout << msg;
+        // std::cout << msg;
+        file_content += msg;
         memset(msg, 0, 50); 
     }
-    std::cout << std::endl;
-    memset(msg, 0, 50); 
-    recv(broadcastFD, msg, 50, 0);
-    std::cout << msg << std::endl;
+    // std::cout << file_content;
+    // std::cout << std::endl;
+    std::cout << file_name << std::endl;
+    std::ofstream out(file_name);
+    out << file_content;
+    out.close();
+    std::cout << result+1 << std::endl;
 }
 
 void handle_ls(){

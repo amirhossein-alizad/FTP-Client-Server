@@ -53,7 +53,7 @@ void informationHandle(){
         handle_help();
         return;
     }
-    else if(strcmp(in, "ls") == 0){
+    else if(in[0] == 'l' and in[1] == 's'){
         handle_ls();
         return;
     }
@@ -109,7 +109,7 @@ void handle_dl(char* file_name){
     }
     // std::cout << file_content;
     // std::cout << std::endl;
-    std::cout << file_name << std::endl;
+    // std::cout << file_name << std::endl;
     std::ofstream out(file_name);
     out << file_content;
     out.close();
@@ -124,6 +124,7 @@ void handle_ls(){
     if(strcmp(result, "!") == 0){
         delete result;
         char* msg = new char[256];
+        memset(msg, 0, 256);
         recv(broadcastFD, msg, 256, 0);
         std::cout<<msg<<std::endl;
         return;

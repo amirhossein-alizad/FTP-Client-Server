@@ -1,0 +1,52 @@
+Users:
+	username: Ali
+	password: 1234
+	admin: 1
+	size: 1000000
+******************************************
+	username: Mohsen
+	password: 1234
+	admin: 0
+	size: 1000000
+******************************************
+Files:
+	config.json
+******************************************
+New Connection in request channel, address :127.0.0.1:49076
+New Connection in data channel, address :127.0.0.2:51674
+Adding to list of sockets as: 0
+Time:	Tue Apr  6 20:17:05 2021
+******************************************
+client with command socket id: 6, data socket id: 7, entered username: Ali, should enter password.
+Time:	Tue Apr  6 20:17:07 2021
+******************************************
+client with command socket id: 6, data socket id: 7,logged in as: Ali
+Time:	Tue Apr  6 20:17:11 2021
+******************************************
+client Ali with command socket id: 6, data socket id: 7, used 'ls' command
+Time:	Tue Apr  6 20:17:14 2021
+******************************************
+client Ali with command socket id: 6, data socket id: 7, used 'retr log.txt' command
+Time:	Tue Apr  6 20:17:20 2021
+******************************************
+New Connection in request channel, address :127.0.0.1:56238
+New Connection in data channel, address :127.0.0.2:58836
+Adding to list of sockets as: 1
+Time:	Tue Apr  6 20:31:26 2021
+******************************************
+client with command socket id: 8, data socket id: 9, entered username: Mohsen, should enter password.
+Time:	Tue Apr  6 20:31:35 2021
+******************************************
+client with command socket id: 8, data socket id: 9, entered an invalid password.
+Time:	Tue Apr  6 20:31:37 2021
+******************************************
+client with command socket id: 8, data socket id: 9,logged in as: Mohsen
+Time:	Tue Apr  6 20:31:42 2021
+******************************************
+client Mohsen with command socket id: 8, data socket id: 9, used 'help' command.Time:	Tue Apr  6 20:31:43 2021
+******************************************
+client Mohsen with command socket id: 8, data socket id: 9, used 'ls' command
+Time:	Tue Apr  6 20:31:44 2021
+******************************************
+client Mohsen with command socket id: 8, data socket id: 9, used 'help' command.Time:	Tue Apr  6 20:31:46 2021
+******************************************

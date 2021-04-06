@@ -95,21 +95,15 @@ void handle_dl(char* file_name){
     std::string file_content = "";
     memset(msg, 0, 50);
     recv(dataFD, msg, 50, 0);
-    // std::cout << msg;
     file_content += msg;
     memset(msg, 0, 50);
     for(int i = 1; ; i++) {
         int r = recv(dataFD, msg, 50, MSG_DONTWAIT);
-        // std::cout << r << std::endl;
         if(r <= 0)
             break;
-        // std::cout << msg;
         file_content += msg;
         memset(msg, 0, 50); 
     }
-    // std::cout << file_content;
-    // std::cout << std::endl;
-    // std::cout << file_name << std::endl;
     std::ofstream out(file_name);
     out << file_content;
     out.close();
@@ -141,28 +135,4 @@ void handle_ls(){
     }
     recv(broadcastFD, msg, 256, 0);
     std::cout << msg << std::endl; 
-    // char* msg = new char[256]; 
-    // recv(broadcastFD, msg, 256, 0);
-    // msg[strlen(msg)] = '\0';
-    // if(strcmp(msg, "!") == 0){
-    //     delete msg;
-    //     msg = new char[256];
-    //     recv(broadcastFD, msg, 256, 0);
-    //     std::cout<<msg<<std::endl;
-    //     return;
-    // }
-    // while(1){
-    //     delete msg;
-    //     msg = new char[256];
-    //     recv(dataFD, msg, 256, 0);
-    //     msg[strlen(msg)] = '\0';
-    //     if(strcmp(msg, "#") == 0){
-    //         delete msg;
-    //         msg = new char[256];
-    //         recv(broadcastFD, msg, 256, 0);
-    //         std::cout<<msg<<std::endl;
-    //         return;
-    //     }
-    //     std::cout<<msg<<std::endl;
-    // }
 }

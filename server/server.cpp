@@ -462,13 +462,11 @@ void Server::handle_dele(std::vector<std::string> parsed, int commandSocket, int
 
 void Server::handle_dl(std::vector<std::string> parsed, int commandSocket, int dataSocket, bool user, bool pass, bool isAdmin, std::string cwd, std::string loggedInUsername){
   if(!user || !pass){
-    // send(commandSocket, "!", 2, 0);
     send(commandSocket, "!332: Need account for login.", 30, 0);
     printLoginError("ls", commandSocket, dataSocket);
     return;
   }
   else if(parsed.size() != 2){
-    // send(commandSocket, "!", 2, 0);
     send(commandSocket, "!501: Syntax error in parameters or arguments.", 47, 0);
     printSyntaxError("ls", commandSocket, dataSocket, loggedInUsername);
     return;
@@ -542,11 +540,8 @@ void Server::handle_ls(std::vector<std::string> parsed, int commandSocket, int d
         continue;
       str += ent->d_name;
       str += "\n";
-      //std::cout << ent->d_name << " " << str << std::endl;
-      // send(dataSocket, ent->d_name, sizeof(ent->d_name), 0);
     }
     send(dataSocket, str.c_str(), str.size()+1, 0);
-    // send(dataSocket, "#", 2, 0);
     send(commandSocket, "226: List transfer done.", 25, 0);
     logs<<"client "<<username<<" with command socket id: "<<commandSocket<<", data socket id: "<<dataSocket<<", used 'ls' command"<<std::endl;
     printTime();
